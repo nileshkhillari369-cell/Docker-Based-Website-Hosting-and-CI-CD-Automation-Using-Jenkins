@@ -1,0 +1,2 @@
+# Docker-Based-Website-Hosting-and-CI-CD-Automation-Using-Jenkins
+. Our workflow involves building Dockerfile, and automating the build, and deployment processes to ensure smooth, consistent, and reliable releases. We also push and store Docker images on Docker Hub for version control, easy accessibility, reuse, and future deployments across different environments. By integrating Docker with Jenkins
