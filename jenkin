@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'ndiya-website'
+        CONTAINER_NAME = 'ndiya-website-container'
+        HOST_PORT = '100'
+        CONTAINER_PORT = '80'
+        PROJECT_DIR = '/home/ubuntu/nilesh/diya'
+    }
+
+    stages {
+        stage('Check Project Files') {
+            steps {
+                sh '''
+                    ls -la $PROJECT_DIR
+                    test -f $PROJECT_DIR/Dockerfile
+                '''
+            }
+        }
+
+        stage('Build New Docker Image') {
+            steps {
+                sh '''
+                    cd $PROJECT_DIR
+                    docker build -t $IMAGE_NAME:$BUILD_NUMBER .
+                    docker tag $IMAGE_NAME:$BUILD_NUMBER $IMAGE_NAME:latest
+                '''
+            }
+        }
+
+        stage('Stop Old Container') {
+            steps {
+                sh '''
+                    docker stop $CONTAINER_NAME || true
+                    docker rm $CONTAINER_NAME || true
+                '''
+            }
+        }
+
+        stage('Deploy Website') {
+            steps {
+                sh '''
+                    docker run -d \
+                      --name $CONTAINER_NAME \
+                      --restart unless-stopped \
+                      -p $HOST_PORT:$CONTAINER_PORT \
+                      $IMAGE_NAME:latest
+                '''
+            }
+        }
+
+        stage('Verify Website') {
+            steps {
+                sh '''
+                    docker ps
+                    curl --retry 5 --retry-delay 2 \
+                      --retry-connrefused \
+                      http://127.0.0.1:$HOST_PORT/
+                '''
+            }
+        }
+    }
+}
